@@ -11,10 +11,6 @@ class Category(Base):
     category_id = Column(Integer, primary_key=True)
     category_name = Column(String(255), nullable=False)
 
-    # each category can contain zero, one or many products, i.e. a one-to-many
-    # relationship where parent = Category and child = Product
-    products = relationship('Product', back_populates='category')
-
 
 class Brand(Base):
 
@@ -22,10 +18,6 @@ class Brand(Base):
 
     brand_id = Column(Integer, primary_key=True)
     brand_name = Column(String(255), nullable=False)
-
-    # each brand can contain zero, one or many products, i.e. a one-to-many
-    # relationship where parent = Brand and child = Product
-    products = relationship('Product', back_populates='brand')
 
 
 class Product(Base):
@@ -41,15 +33,11 @@ class Product(Base):
 
     # each product belongs to only one category, i.e. a one-to-many
     # relationship where parent = Category and child = Product
-    category = relationship('Category', back_populates='products')
+    category = relationship('Category', backref='products')
 
     # each product belongs to only one brand, i.e. a one-to-many
     # relationship where parent = Brand and child = Product
-    brand = relationship('Brand', back_populates='products')
-
-    # each product conrtains many order items, i.e. a one-to-many
-    # relationship where parent = Product and child = Order_Item
-    order_items = relationship('Order_Item', back_populates='product')
+    brand = relationship('Brand', backref='products')
 
 
 class Customer(Base):
@@ -66,10 +54,6 @@ class Customer(Base):
     state = Column(String(25))
     zip_code = Column(String(5))
 
-    # each customer can contain zero, one or many orders, i.e. a one-to-many
-    # relationship where parent = Customer and child = Order
-    orders = relationship('Order', back_populates='customer')
-
 
 class Store(Base):
 
@@ -83,18 +67,6 @@ class Store(Base):
     city = Column(String(255))
     state = Column(String(10))
     zip_code = Column(String(5))
-
-    # each brand can contain zero, one or many products, i.e. a one-to-many
-    # relationship where parent = Brand and child = Product
-    staff = relationship('Staff', back_populates='store')
-
-    # each store can contain zero, one or many orders, i.e. a one-to-many
-    # relationship where parent = Store and child = Order
-    orders = relationship('Order', back_populates='store')
-
-    # each store contains stock values for each product, i.e. a one-to-many
-    # relationship where parent = Store and child = Stock
-    stocks = relationship('Stock', back_populates='store')
 
 
 class Staff(Base):
@@ -112,15 +84,11 @@ class Staff(Base):
 
     # each staff member belongs to only one store, i.e. a one-to-many
     # relationship where parent = Store and child = Staff
-    store = relationship('Store', back_populates='staff')
+    store = relationship('Store', backref='staff')
 
     # each staff member has one manager, i.e. a one-to-many
     # relationship where parent = Staff and child = Staff
     manager = relationship('Staff', remote_side=[staff_id])
-
-    # each staff member can contain zero, one or many orders, i.e. a one-to-many
-    # relationship where parent = Staff and child = Order
-    orders = relationship('Order', back_populates='staff')
 
 
 class Order(Base):
@@ -138,19 +106,15 @@ class Order(Base):
 
     # each order belongs to only one customer, i.e. a one-to-many
     # relationship where parent = Customer and child = Order
-    customer = relationship('Customer', back_populates='orders')
+    customer = relationship('Customer', backref='orders')
 
     # each order belongs to only one store, i.e. a one-to-many
     # relationship where parent = Store and child = Order
-    store = relationship('Store', back_populates='orders')
+    store = relationship('Store', backref='orders')
 
     # each order belongs to only one staff member, i.e. a one-to-many
     # relationship where parent = Staff and child = Order
-    staff = relationship('Staff', back_populates='orders')
-
-    # each order relates to exactly one order_item, i.e. a one-to-one
-    # relationship where parent = Order and child = Order_Item
-    order_item = relationship('Order_Item', uselist=False, back_populates='order')
+    staff = relationship('Staff', backref='orders')
 
 class Order_Item(Base):
 
@@ -165,11 +129,11 @@ class Order_Item(Base):
 
     # each order item relates to exactly one order, i.e. a one-to-one
     # relationship where parent = Order and child = Order_Item
-    order = relationship('Order', back_populates='order_item')
+    order = relationship('Order', backref='order_item', uselist=False)
 
     # each order item corresponds to a single product, i.e. a one-to-many
     # relationship where parent = Product and child = Order_Item
-    product = relationship('Product', back_populates='order_items')
+    product = relationship('Product', backref='order_items')
 
 
 class Stock(Base):
@@ -182,4 +146,4 @@ class Stock(Base):
 
     # each stock value corresponds to a single store, i.e. a one-to-many
     # relationship where parent = Store and child = Stock
-    store = relationship('Store', back_populates='stocks')
+    store = relationship('Store', backref='stocks')
