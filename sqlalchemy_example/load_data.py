@@ -51,6 +51,22 @@ def load_customers(session):
     session.commit()
 
 
+def load_stores(session):
+    for store_name, phone, email, street, city, state, zip_code in [
+        ('Santa Cruz Bikes', '(831) 476-4321', 'santacruz@bikes.shop', '3700 Portola Drive',  'Santa Cruz', 'CA', '95060'),
+        ('Baldwin Bikes', '(516) 379-8888', 'baldwin@bikes.shop', '4200 Chestnut Lane',  'Baldwin', 'NY', '11432'),
+        ('Rowlett Bikes', '(972) 530-5555', 'rowlett@bikes.shop', '8000 Fairway Avenue',  'Rowlett', 'TX', '75088')]:
+        store = Store(store_name=store_name,
+                      phone=phone,
+                      email=email,
+                      street=street,
+                      city=city,
+                      state=state,
+                      zip_code=zip_code)
+        session.add(store)
+    session.commit()
+
+
 def load_stocks(session):
     with open('sqlalchemy_example/data/stocks.csv', 'r') as datafile:
         for line in datafile:
