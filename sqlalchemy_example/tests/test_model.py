@@ -1,6 +1,7 @@
 import unittest
 import sqlalchemy
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from sqlalchemy_example.create_session import *
@@ -114,3 +115,37 @@ class TestReturnValues(unittest.TestCase):
     def test_scalar_method_with_multiple_results_errors(self):
         query = self.session.query(Brand).scalar
         self.assertRaises(MultipleResultsFound, query)
+
+
+class TestForeignKeyConstraints(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.session = build_session()
+
+    def setUp(self):
+        self.session.rollback()  # needed as this test class raises errors that need to be flushed
+
+    def test_adding_product_with_nonexistent_brand_id_errors(self):
+        new_product = Product(product_name='test',
+                              brand_id=99999,
+                              category_id=1,
+                              model_year=2019,
+                              list_price=999.99)
+        self.session.add(new_product)
+        self.assertRaises(IntegrityError, self.session.commit)
+
+    def test_adding_product_with_nonexistent_category_id_errors(self):
+        new_product = Product(product_name='test',
+                              brand_id=1,
+                              category_id=99999,
+                              model_year=2019,
+                              list_price=999.99)
+        self.session.add(new_product)
+        self.assertRaises(IntegrityError, self.session.commit)
+
+    def test_deleting_brand_id_that_exists_in_a_product_errors(self):
+        brand = self.session.query(Brand).first()
+        self.session.delete(brand)
+        self.assertRaises(IntegrityError, self.session.commit)
+
