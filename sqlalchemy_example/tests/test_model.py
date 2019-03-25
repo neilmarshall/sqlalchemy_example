@@ -63,6 +63,82 @@ class TestQueries(unittest.TestCase):
         self.assertEqual(results[-1], ('Upland', 11))
 
 
+class TestAdvancedQueries(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.session = build_session()
+
+    def test_select_distinct(self):
+        count = self.session.query(Customer.city).distinct().count()
+        self.assertEqual(count, 195)
+
+    def test_select_multiple_columns_with_multiple_filters(self):
+        results = self.session.query(Product.product_id,
+                                     Product.product_name,
+                                     Product.category_id,
+                                     Product.model_year,
+                                     Product.list_price) \
+                              .filter_by(category_id = 1, model_year = 2018) \
+                              .order_by(Product.list_price.desc(), Product.product_id) \
+                              .all()
+        self.assertEqual(len(results), 37)
+        self.assertEqual(results[0],
+            (280, "Trek Superfly 24 - 2017/2018", 1, 2018, 489.99))
+
+    def test_select_multiple_columns_with_like_operator(self):
+        results = self.session.query(Product.product_id,
+                                     Product.product_name,
+                                     Product.category_id,
+                                     Product.model_year,
+                                     Product.list_price) \
+                              .filter(Product.product_name.like('%Cruiser%')) \
+                              .order_by(Product.list_price.desc(), Product.product_id) \
+                              .all()
+        self.assertEqual(len(results), 19)
+        self.assertEqual(results[0],
+            (233, "Electra Cruiser Lux Fat Tire 7D - 2018", 3, 2018, 639.99))
+
+    def test_select_multiple_columns_with_in_operator(self):
+        results = self.session.query(Product.product_name,
+                                     Product.list_price) \
+                              .filter(Product.list_price.in_([89.99, 109.99, 159.99])) \
+                              .order_by(Product.list_price) \
+                              .all()
+        self.assertEqual(len(results), 3)
+        self.assertEqual(results[0],
+            ("Strider Classic 12 Balance Bike - 2018", 89.99))
+
+
+class TestQueriesWithNull(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.session = build_session()
+
+    def test_select_null_values(self):
+        results = self.session.query(Customer.customer_id,
+                                     Customer.first_name,
+                                     Customer.last_name,
+                                     Customer.phone) \
+                              .filter(Customer.phone.is_(None)) \
+                              .order_by(Customer.first_name, Customer.last_name) \
+                              .all()
+        self.assertEqual(len(results), 1267)
+        self.assertEqual(results[0], (338, 'Abbey', 'Pugh', None))
+
+    def test_select_not_null_values(self):
+        results = self.session.query(Customer.customer_id,
+                                     Customer.first_name,
+                                     Customer.last_name,
+                                     Customer.phone) \
+                              .filter(~Customer.phone.is_(None)) \
+                              .order_by(Customer.first_name, Customer.last_name) \
+                              .all()
+        self.assertEqual(len(results), 178)
+        self.assertEqual(results[0], (1174, 'Aaron', 'Knapp', '(914) 402-4335'))
+
+
 class TestReturnValues(unittest.TestCase):
 
     @classmethod
